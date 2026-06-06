@@ -752,10 +752,10 @@
                     }
                 }
 
-                // 重置玩家
+                // 重置玩家（出生在基地正下方的空格）
                 this.player = new PlayerTank(
                     9 * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE / 2,
-                    18 * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE / 2
+                    19 * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE / 2
                 );
 
                 this.enemies = [];
@@ -977,7 +977,7 @@
                                     if (this.isRunning) {
                                         this.player.respawn(
                                             9 * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE / 2,
-                                            18 * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE / 2
+                                            19 * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE / 2
                                         );
                                     }
                                 }, 1000);
