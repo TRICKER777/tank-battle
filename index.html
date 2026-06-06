@@ -714,10 +714,13 @@
             }
 
             setupEventListeners() {
+                const gameKeys = ['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','KeyJ'];
                 window.addEventListener('keydown', (e) => {
+                    if (gameKeys.includes(e.code)) {
+                        e.preventDefault();
+                    }
                     this.keys[e.code] = true;
                     if (e.code === 'Space' || e.code === 'KeyJ') {
-                        e.preventDefault();
                         if (this.isRunning && !this.isPaused && this.player && this.player.alive) {
                             const bullet = this.player.shoot();
                             if (bullet) this.bullets.push(bullet);
