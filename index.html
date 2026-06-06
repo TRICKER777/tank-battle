@@ -771,29 +771,64 @@
 
             spawnEnemy() {
                 if (this.enemiesToSpawn <= 0) return;
+                if (this.enemies.filter(e => e.alive).length >= CONFIG.MAX_ENEMIES) return;
 
-                const spawnPositions = [
+                // 优先的出生位置（顶部三个位置）
+                const preferredPositions = [
                     { x: 1 * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE / 2, y: 1 * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE / 2 },
                     { x: 9 * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE / 2, y: 1 * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE / 2 },
                     { x: 18 * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE / 2, y: 1 * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE / 2 }
                 ];
 
-                // 检查位置是否被占用
-                for (const pos of spawnPositions) {
-                    let occupied = false;
-                    for (const enemy of this.enemies) {
-                        if (enemy.alive && Math.abs(enemy.x - pos.x) < 30 && Math.abs(enemy.y - pos.y) < 30) {
-                            occupied = true;
-                            break;
-                        }
-                    }
-
-                    if (!occupied && this.enemies.filter(e => e.alive).length < CONFIG.MAX_ENEMIES) {
+                // 先尝试优先位置
+                for (const pos of preferredPositions) {
+                    if (this.isValidSpawnPosition(pos.x, pos.y)) {
                         this.enemies.push(new EnemyTank(pos.x, pos.y));
                         this.enemiesToSpawn--;
                         return;
                     }
                 }
+
+                // 如果优先位置都被占用或不是空地，在地图上半部分随机搜索空位
+                for (let attempts = 0; attempts < 100; attempts++) {
+                    const tx = Math.floor(Math.random() * CONFIG.GRID_WIDTH);
+                    const ty = Math.floor(Math.random() * (CONFIG.GRID_HEIGHT / 2));
+                    const x = tx * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE / 2;
+                    const y = ty * CONFIG.TILE_SIZE + CONFIG.TILE_SIZE / 2;
+
+                    if (this.isValidSpawnPosition(x, y)) {
+                        this.enemies.push(new EnemyTank(x, y));
+                        this.enemiesToSpawn--;
+                        return;
+                    }
+                }
+            }
+
+            isValidSpawnPosition(x, y) {
+                const tileX = Math.floor(x / CONFIG.TILE_SIZE);
+                const tileY = Math.floor(y / CONFIG.TILE_SIZE);
+
+                // 检查是否在地图范围内且格子为空地
+                if (tileY < 0 || tileY >= CONFIG.GRID_HEIGHT || tileX < 0 || tileX >= CONFIG.GRID_WIDTH) {
+                    return false;
+                }
+                if (this.gameMap[tileY][tileX] !== TILE.EMPTY) {
+                    return false;
+                }
+
+                // 检查是否被其他坦克占用
+                for (const enemy of this.enemies) {
+                    if (enemy.alive && Math.abs(enemy.x - x) < 30 && Math.abs(enemy.y - y) < 30) {
+                        return false;
+                    }
+                }
+
+                // 检查是否与玩家重叠
+                if (this.player && this.player.alive && Math.abs(this.player.x - x) < 30 && Math.abs(this.player.y - y) < 30) {
+                    return false;
+                }
+
+                return true;
             }
 
             start() {
